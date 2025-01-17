@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "iToxrih3ZmMpLqgjMu027kCz/2d2tkPD2bDBXW1mgUz7JwNLpwzy0HgIr7lOQJkRhMX+q0gH7ER6NuYfBXFc+g==",
+  "success": true,
+  "projectFilePath": "C:\\Tiedostot\\zkehitysympäristöt\\Raylib_Test\\Raylib_Test.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\s2300941\\.nuget\\packages\\raylib-cs\\7.0.0\\raylib-cs.7.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}
