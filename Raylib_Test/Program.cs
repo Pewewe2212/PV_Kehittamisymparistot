@@ -7,38 +7,53 @@ namespace Raylib_Test
     {
         static void Main(string[] args)
         {
-            Vector2 Position = new Vector2(100, 100);
-            Vector2 Direction = new Vector2(1, 1);
-            float Speed = 10f;
+            int Width = 800;
+            int Height = 600;
+            float Speed = 100f;
+            Color color = Color.Yellow;
 
-            Raylib.InitWindow(1000, 600, "Raylib");
+            Vector2 Position = new Vector2(Width/2, Height/2);
+            Vector2 Direction = new Vector2(1, 1);
+
+            int font = 32;
+            string text = "DVD";
+
+            Raylib.InitWindow(Width, Height, "Raylib");
+            Vector2 textSize = Raylib.MeasureTextEx(Raylib.GetFontDefault(), text, font, 2.0f);
             while (!Raylib.WindowShouldClose())
             {
                 Raylib.BeginDrawing();
                 Raylib.ClearBackground(Color.Black);
                 Position += Direction * Speed * Raylib.GetFrameTime();
+
                 int posX = (int)Position.X;
                 int posY = (int)Position.Y;
-                Raylib.DrawText("DVD", posX, posY, 32, Color.Yellow);
-                if (Position.X >= Raylib.GetScreenWidth())
+                Raylib.DrawText(text, posX, posY, font, color);
+
+                if (Position.X >= Width - textSize.X)
                 {
                     Direction = new Vector2(-1, Direction.Y);
+                    color = Color.Red;
                 }
-                if (Position.Y >= Raylib.GetScreenHeight())
+                if (Position.Y >= Height - textSize.Y)
                 {
                     Direction = new Vector2(Direction.X, -1);
+                    color = Color.Green;
                 }
                 if (Position.X <= 0)
                 {
                     Direction = new Vector2(1, Direction.Y);
+                    color = Color.Blue;
                 }
                 if (Position.Y <= 0)
                 {
                     Direction = new Vector2(Direction.X, 1);
+                    color = Color.Purple;
                 }
 
+                Raylib.EndDrawing();
+
             }
-            Raylib.EndDrawing();
             Raylib.CloseWindow();
 
         }

@@ -1,37 +1,12 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "C:\\Tiedostot\\zkehitysymp\u00E4rist\u00F6t\\Raylib_Test\\",
-  "Documents": [
-    {
-      "AbsoluteMoniker": "D:0:0:{4BCAE3A2-EA6F-4DCF-9268-16D2105087C9}|Raylib_Test.csproj|c:\\tiedostot\\zkehitysymp\u00E4rist\u00F6t\\raylib_test\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{4BCAE3A2-EA6F-4DCF-9268-16D2105087C9}|Raylib_Test.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    }
-  ],
+  "WorkspaceRootPath": "C:\\Tiedostot\\kehitt\u00E4mis\\PV_Kehittamisymparistot\\Raylib_Test\\",
+  "Documents": [],
   "DocumentGroupContainers": [
     {
       "Orientation": 0,
       "VerticalTabListWidth": 256,
-      "DocumentGroups": [
-        {
-          "DockedWidth": 200,
-          "SelectedChildIndex": 0,
-          "Children": [
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "Program.cs",
-              "DocumentMoniker": "C:\\Tiedostot\\zkehitysymp\u00E4rist\u00F6t\\Raylib_Test\\Program.cs",
-              "RelativeDocumentMoniker": "Program.cs",
-              "ToolTip": "C:\\Tiedostot\\zkehitysymp\u00E4rist\u00F6t\\Raylib_Test\\Program.cs",
-              "RelativeToolTip": "Program.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAA0AAAAzAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-01-17T07:35:45.578Z",
-              "EditorCaption": ""
-            }
-          ]
-        }
-      ]
+      "DocumentGroups": []
     }
   ]
 }

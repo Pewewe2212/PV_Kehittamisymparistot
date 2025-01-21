@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Tiedostot\\zkehitysympäristöt\\Raylib_Test\\Raylib_Test.csproj": {}
+    "C:\\Tiedostot\\kehittämis\\PV_Kehittamisymparistot\\Raylib_Test\\Raylib_Test.csproj": {}
   },
   "projects": {
-    "C:\\Tiedostot\\zkehitysympäristöt\\Raylib_Test\\Raylib_Test.csproj": {
+    "C:\\Tiedostot\\kehittämis\\PV_Kehittamisymparistot\\Raylib_Test\\Raylib_Test.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Tiedostot\\zkehitysympäristöt\\Raylib_Test\\Raylib_Test.csproj",
+        "projectUniqueName": "C:\\Tiedostot\\kehittämis\\PV_Kehittamisymparistot\\Raylib_Test\\Raylib_Test.csproj",
         "projectName": "Raylib_Test",
-        "projectPath": "C:\\Tiedostot\\zkehitysympäristöt\\Raylib_Test\\Raylib_Test.csproj",
+        "projectPath": "C:\\Tiedostot\\kehittämis\\PV_Kehittamisymparistot\\Raylib_Test\\Raylib_Test.csproj",
         "packagesPath": "C:\\Users\\s2300941\\.nuget\\packages\\",
-        "outputPath": "C:\\Tiedostot\\zkehitysympäristöt\\Raylib_Test\\obj\\",
+        "outputPath": "C:\\Tiedostot\\kehittämis\\PV_Kehittamisymparistot\\Raylib_Test\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\s2300941\\AppData\\Roaming\\NuGet\\NuGet.Config",
