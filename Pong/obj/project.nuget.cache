@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "XyJk90URNkD2VFfwJZYfIGg/kH8v8Tp16a1n+xp7Tdmv8HCPS8jt0iltHzEzrHEi3RuBh4VqwUhfyolS8Ov2Qg==",
+  "success": true,
+  "projectFilePath": "C:\\Tiedostot\\kehittämis\\Pong\\Pong.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\s2300941\\.nuget\\packages\\raylib-cs\\7.0.0\\raylib-cs.7.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}

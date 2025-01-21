@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "P1NZr/3jeScO/54sw1TDFDakasuGVuAgtn/P7+eDExVcIFGw/FPG12z2rn2LWr/+OyG4hTzrwz4VvtPYdn2c4w==",
+  "dgSpecHash": "stAa8DVB9uF2TNmw6+fYIUkQnOmeBSNQondlp6HFNeoRSZyNwMCees8XRzi9It0uz8NK7k5CgTzUr1h3LJbC4w==",
   "success": true,
-  "projectFilePath": "C:\\Tiedostot\\kehittämis\\PV_Kehittamisymparistot\\Raylib_Test\\Raylib_Test.csproj",
+  "projectFilePath": "C:\\Tiedostot\\kehittämis\\PV_Kehittamisymparistot\\DVD\\Raylib_Test.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\s2300941\\.nuget\\packages\\raylib-cs\\7.0.0\\raylib-cs.7.0.0.nupkg.sha512"
   ],

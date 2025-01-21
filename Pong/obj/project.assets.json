@@ -72,11 +72,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Tiedostot\\kehittämis\\PV_Kehittamisymparistot\\DVD\\Raylib_Test.csproj",
-      "projectName": "Raylib_Test",
-      "projectPath": "C:\\Tiedostot\\kehittämis\\PV_Kehittamisymparistot\\DVD\\Raylib_Test.csproj",
+      "projectUniqueName": "C:\\Tiedostot\\kehittämis\\Pong\\Pong.csproj",
+      "projectName": "Pong",
+      "projectPath": "C:\\Tiedostot\\kehittämis\\Pong\\Pong.csproj",
       "packagesPath": "C:\\Users\\s2300941\\.nuget\\packages\\",
-      "outputPath": "C:\\Tiedostot\\kehittämis\\PV_Kehittamisymparistot\\DVD\\obj\\",
+      "outputPath": "C:\\Tiedostot\\kehittämis\\Pong\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\s2300941\\AppData\\Roaming\\NuGet\\NuGet.Config",
