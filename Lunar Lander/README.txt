@@ -1,0 +1,1 @@
+The Lunar Lander task, you use the thruster by pressing/holding spacebar
