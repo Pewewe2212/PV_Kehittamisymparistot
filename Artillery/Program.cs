@@ -22,6 +22,9 @@ namespace Artillery
             public int pointsP1 = 0;
             public int pointsP2 = 0;
 
+            Sound shootSound;
+            Sound explosionSound;
+
             //the ground
             public List<Rectangle> ground;
 
@@ -55,6 +58,7 @@ namespace Artillery
             bool poof = false;
             bool explosionP1 = false;
             bool explosionP2 = false;
+            int _explosion = 0;
 
             int bulletTypeP1;
             int bulletTypeP2;
@@ -88,6 +92,9 @@ namespace Artillery
             public void Init()
             {
                 Raylib.InitWindow(1000, 600, "Artillery");
+                Raylib.InitAudioDevice();
+
+                LoadSounds();
 
                 gameRunning = true;
 
@@ -108,6 +115,12 @@ namespace Artillery
 
                 pointsP1 = 0;
                 pointsP2 = 0;
+            }
+
+            public void LoadSounds()
+            {
+                shootSound = Raylib.LoadSound("C:/laserShoot.wav");
+                explosionSound = Raylib.LoadSound("C:/explosion.wav");
             }
 
             public void GameLoop()
@@ -143,6 +156,8 @@ namespace Artillery
                             shot = true;
                             explosionP1 = false;
                             explosionP2 = false;
+                            Raylib.PlaySound(shootSound);
+                            _explosion = 0;
                             // make the player shoot
                             _Bullet(false);
                         }
@@ -216,9 +231,10 @@ namespace Artillery
                             shot = true;
                             explosionP1 = false;
                             explosionP2 = false;
+                            Raylib.PlaySound(shootSound);
+                            _explosion = 0;
                             /// make the player shoot
                             _Bullet(true);
-
                         }
 
                         // the moving
@@ -375,7 +391,6 @@ namespace Artillery
                         {
                             pointsP1 += 1;
                         }
-                        Thread.Sleep(1000);
                         shot = false;
                         turn = 1;
                         moved = false;
@@ -490,7 +505,6 @@ namespace Artillery
                         {
                             pointsP2 += 1;
                         }
-                        Thread.Sleep(1000);
                         shot = false;
                         turn = 0;
                         moved = false;
@@ -572,11 +586,21 @@ namespace Artillery
                     {
                         if (bulletTypeP1 == 1)
                         {
+                            if (_explosion == 0)
+                            {
+                                _explosion = 1;
+                                Raylib.PlaySound(explosionSound);
+                            }
                             Raylib.DrawCircle((int)bulletP1.x, (int)bulletP1.y, 20, Color.Orange);
                         }
 
                         if (bulletTypeP1 == 2)
                         {
+                            if (_explosion == 0)
+                            {
+                                _explosion = 1;
+                                Raylib.PlaySound(explosionSound);
+                            }
                             Raylib.DrawCircle((int)bulletP1.x, (int)bulletP1.y, 40, Color.Orange);
                         }
                     }
@@ -597,11 +621,21 @@ namespace Artillery
                     {
                         if (bulletTypeP2 == 1)
                         {
+                            if (_explosion == 0)
+                            {
+                                _explosion = 1;
+                                Raylib.PlaySound(explosionSound);
+                            }
                             Raylib.DrawCircle((int)bulletP2.x, (int)bulletP2.y, 20, Color.Orange);
                         }
 
                         if (bulletTypeP2 == 2)
                         {
+                            if (_explosion == 0)
+                            {
+                                _explosion = 1;
+                                Raylib.PlaySound(explosionSound);
+                            }
                             Raylib.DrawCircle((int)bulletP2.x, (int)bulletP2.y, 40, Color.Orange);
                         }
                     }
