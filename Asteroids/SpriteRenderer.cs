@@ -1,5 +1,4 @@
 ﻿using Raylib_cs;
-using static Asteroids.Program.Game;
 
 namespace Asteroids
 {

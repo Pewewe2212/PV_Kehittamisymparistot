@@ -1,5 +1,4 @@
-﻿using System.Net.Sockets;
-using System.Numerics;
+﻿using System.Numerics;
 using System.Timers;
 using Raylib_cs;
 
@@ -57,7 +56,7 @@ namespace Asteroids
                     gameObject.speed = 200;
                     collision.Bounds.Size = new Vector2(100, 70);
 
-                    
+
                 }
 
             }
@@ -520,7 +519,7 @@ namespace Asteroids
 
             // every collision check
             // player collisions
- 
+
 
             // bullet collisions
             public void CheckCollision(Bullet bullet, Asteroid asteroid)
