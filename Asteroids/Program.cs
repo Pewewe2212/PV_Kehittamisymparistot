@@ -168,7 +168,9 @@ namespace Asteroids
                         if (Raylib.IsKeyPressed(KeyboardKey.R))
                         {
                             Restart();
+                            break;
                         }
+
                         Raylib.EndDrawing();
                     }
                 }
