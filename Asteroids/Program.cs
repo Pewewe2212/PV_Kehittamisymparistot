@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Numerics;
+using System.Timers;
 using Raylib_cs;
 
 namespace Asteroids
@@ -9,7 +10,6 @@ namespace Asteroids
         /// <summary>
         /// TO DO:
         /// Player:
-        /// Make the player able to attack
         /// make the player able to die
         /// 
         /// Asteroids:
@@ -26,30 +26,59 @@ namespace Asteroids
         /// 
 
         /// CURRENTLY WORKING ON:
-        /// Ship Image moving correctly
+        /// Making asteroids split when hit
         public class Game()
         {
-            public struct Bullet
+            public class Bullet
             {
                 public Vector2 position;
                 public Vector2 direction;
                 public bool isActive;
             }
 
+            public class Asteroid
+            {
+                public Vector2 position;
+                public Vector2 direction;
+                public bool isActive;
+                public Rectangle collisionBox;
+            }
+
+            public class SmallAsteroid
+            {
+                public Vector2 position;
+                public Vector2 direction;
+                public bool isActive;
+                public Rectangle collisionBox;
+            }
+
+            // Asteroid things
+            System.Timers.Timer timer1;
+
             // game state booleans
             public bool gameRunning;
             public bool gameOver = false;
 
+            // screen size
+            public int screenWidth = 1000;
+            public int screenHeight = 600;
+
             // images
             Texture2D player;
-            float playerWidth;
             Rectangle playerRec;
-            //Texture2D enemy = Raylib.LoadTexture("C:/Tiedostot/zAsteroidsImages/PNG/ufoBlue.png");
-            //Texture2D asteroidBig = Raylib.LoadTexture("C:/Tiedostot/zAsteroidsImages/PNG/Meteors/meteorGrey_big2.png");
+            Texture2D enemy;
+            Texture2D asteroidBig;
+            Texture2D asteroidSmall;
+
+            // extra ship stuff
+            float hp = 2;
+            Rectangle playerCollision;
+            float attackDelay;
+            float attackDelayMax = 500;
 
             // movement of the ship 
-            float acceleration = 1000;
-            float max_speed = 200;
+            float acceleration = 600;
+            float max_speed = 300;
             Vector2 velocity = new Vector2(0, 0);
             float deltaTime;
             Vector2 position = new Vector2(100, 100);
@@ -58,8 +87,13 @@ namespace Asteroids
             Vector2 direction;
             float rotationAngle;
 
-            // bullet stuff
+            // UI things
+            int points;
+
+            // lists
             List<Bullet> bullets;
+            List<Asteroid> asteroids;
+            List<SmallAsteroid> smallAsteroids;
 
             public void Start()
             {
@@ -75,19 +109,89 @@ namespace Asteroids
 
             public void Init()
             {
-                Raylib.InitWindow(1000, 600, "Asteroids");
-
+                Raylib.InitWindow(screenWidth, screenHeight, "Asteroids");
                 // add the extra knowledge for the start here
                 gameRunning = true;
                 gameOver = false;
                 bullets = new List<Bullet>();
+                asteroids = new List<Asteroid>();
+                smallAsteroids = new List<SmallAsteroid>();
+                position = new Vector2(screenWidth / 2, screenHeight / 2);
                 LoadImages();
+                InitTimer();
             }
+
 
             public void LoadImages()
             {
-                player = Raylib.LoadTexture("C:/zAsteroidsImages/PNG/playerShip2_red.png");
-                playerWidth = player.Width;
+                player = Raylib.LoadTexture("zAsteroidsImages/playerShip2_red.png");
+                enemy = Raylib.LoadTexture("zAsteroidsImages/ufoBlue.png");
+                asteroidBig = Raylib.LoadTexture("zAsteroidsImages/meteorGrey_big2.png");
+                asteroidSmall = Raylib.LoadTexture("zAsteroidsImages/meteorGrey_med1.png");
+            }
+
+            public void GameEnd(bool result)
+            {
+                gameOver = true;
+                // loss
+                if (result == false)
+                {
+                    while (true)
+                    {
+                        Raylib.BeginDrawing();
+                        Raylib.ClearBackground(Color.White);
+                        Raylib.DrawText("YOU LOST", screenWidth / 2 - 100, screenHeight / 2 - 20, 40, Color.Black);
+                        Raylib.DrawText("Press R to restart", screenWidth / 2 - 200, screenHeight / 2 + 60, 40, Color.Black);
+
+                        if (Raylib.IsKeyPressed(KeyboardKey.R))
+                        {
+                            Restart();
+                            break;
+                        }
+
+                        Raylib.EndDrawing();
+                    }
+
+                   
+                }
+                // win
+                else if (result == true)
+                {
+                    Raylib.BeginDrawing();
+
+                    while (true)
+                    {
+                        Raylib.ClearBackground(Color.White);
+                        Raylib.DrawText("YOU WON", screenWidth / 2 - 40, screenHeight / 2 - 20, 40, Color.Black);
+                        Raylib.DrawText("Press R to restart", screenWidth / 2 - 40, screenHeight / 2 + 60, 40, Color.Black);
+
+                        if (Raylib.IsKeyPressed(KeyboardKey.R))
+                        {
+                            Restart();
+                        }
+                        else if (gameOver == true)
+                        {
+                            break;
+                        }
+                    }
+                    
+
+                    Raylib.EndDrawing();
+                }
+            }
+
+            public void Restart()
+            {
+                gameRunning = true;
+                gameOver = false;
+                bullets = new List<Bullet>();
+                asteroids = new List<Asteroid>();
+                smallAsteroids = new List<SmallAsteroid>();
+                position = new Vector2(screenWidth / 2, screenHeight / 2);
+                points = 0;
+                hp = 2;
+                rotationAngle = 0;
+                velocity = new Vector2(0, 0);
             }
 
             public void GameLoop()
@@ -99,14 +203,90 @@ namespace Asteroids
                 }
 
                 Raylib.UnloadTexture(player);
+                Raylib.UnloadTexture(enemy);
+                Raylib.UnloadTexture(asteroidBig);
                 Raylib.CloseWindow();
             }
 
             public void Update()
             {
+                // bullets
+                if (gameOver != true)
+                {
+                    // checks shooting n makes the bullet
+                    if (Raylib.IsKeyPressed(KeyboardKey.Space) && attackDelay <= 0)
+                    {
+                        attackDelay = attackDelayMax;
+                        MakeBullet(position, direction);
+                    }
+
+                    // checks the delay
+                    if (attackDelay > 0)
+                    {
+                        attackDelay -= 1000 * Raylib.GetFrameTime();
+                    }
+
+                    // removes Inactive bullets and moves the needed ones
+                    if (bullets != null)
+                    {
+                        for (int i = bullets.Count - 1; i >= 0; i--)
+                        {
+                            if (!bullets[i].isActive)
+                            {
+                                bullets.RemoveAt(i);
+                            }
+                            else
+                            {
+                                MoveBullet(bullets[i]);
+                            }
+                        }
+                    }
+                }
+
+
+                // enemy spawning
+                if (gameOver != true)
+                {
+                    // Asteroids
+                    if (asteroids != null)
+                    {
+                        for (int i = asteroids.Count - 1; i >= 0; i--)
+                        {
+                            if (!asteroids[i].isActive)
+                            {
+                                asteroids.RemoveAt(i);
+                            }
+                            else
+                            {
+                                UpdateAsteroid(asteroids[i]);
+                            }
+                        }
+                    }
+                    if (smallAsteroids != null)
+                    {
+                        for (int i = smallAsteroids.Count - 1; i >= 0; i--)
+                        {
+                            if (!smallAsteroids[i].isActive)
+                            {
+                                smallAsteroids.RemoveAt(i);
+                            }
+                            else
+                            {
+                                UpdateAsteroid(smallAsteroids[i]);
+                            }
+                        }
+                    }
+
+                    // Enemy ships
+                }
+
+
                 // movement
                 if (gameOver != true)
                 {
+                    // player collision box
+                    playerCollision = new Rectangle((int)position.X - 30, (int)position.Y - 30, player.Width - 50, player.Height - 10);
+
                     // player movement
                     deltaTime = Raylib.GetFrameTime();
 
@@ -142,77 +322,94 @@ namespace Asteroids
                         rotationAngle = 0;
                     }
 
-                    // make the ship constantly go towards 0 speed
-                    Delay(100);
+                    // make the ship constantly go towards 0 speed 
+                    if (!Raylib.IsKeyDown(KeyboardKey.W))
+                    {
+                        float friction = 200f;
+                        if (velocity.Length() > 0)
+                        {
+                            Vector2 frictionForce = Vector2.Normalize(velocity) * friction * deltaTime;
+                            if (frictionForce.Length() > velocity.Length())
+                            {
+                                velocity = Vector2.Zero;
+                            }
+                            else
+                            {
+                                velocity -= frictionForce;
+                            }
+                        }
+                    }
 
 
-                    Debug.WriteLine(velocity);
-
-                    // actually move the shit
+                    // actually move the ship
                     position += velocity * deltaTime;
                 }
 
-                // bullets
                 if (gameOver != true)
                 {
-                    // checks shooting n makes the bullet
-                    if (Raylib.IsKeyPressed(KeyboardKey.Space))
+                    // checks victory
+                    if (points >= 50)
                     {
-                        MakeBullet(position, direction);
+                        GameEnd(true);
                     }
 
-                    // removes unneccesary bullets
-                    if (bullets != null)
+                    if (hp <= 0)
                     {
-                        foreach (Bullet bullet in bullets)
-                        {
-                            if (bullet.isActive == false)
-                            {
-                                bullets.Remove(bullet);
-                            }
-                            MoveBullet(bullet);
-                        }
+                        GameEnd(false);
                     }
                 }
 
+            }
 
-                // enemy spawning
+            public void DrawGame()
+            {
+                Raylib.BeginDrawing();
                 if (gameOver != true)
                 {
-                    // input the enemy spawners here
+                    Raylib.ClearBackground(Color.Black);
+                    Rectangle fullImageRect = new Rectangle(0, 0, player.Width, player.Height);
+                    playerRec = new Rectangle((int)position.X, (int)position.Y, player.Width, player.Height);
+
+                    Raylib.DrawTexturePro(player, fullImageRect, playerRec, new Vector2(playerRec.Width / 2, playerRec.Height / 2), rotationAngle, Color.White);
+
+                    // UI
+                    Raylib.DrawText($"Points: {points}", 20, 20, 20, Color.SkyBlue);
+                    Raylib.DrawText($"Health: {hp}", 20, 60, 20, Color.Red);
+
+                    foreach (Asteroid asteroid in asteroids)
+                    {
+                        Raylib.DrawTexture(asteroidBig, (int)asteroid.position.X, (int)asteroid.position.Y, Color.White);
+                    }
+
+                    foreach (SmallAsteroid asteroid in smallAsteroids)
+                    {
+                        Raylib.DrawTexture(asteroidSmall, (int)asteroid.position.X, (int)asteroid.position.Y, Color.White);
+                    }
+
+                    foreach (Bullet bullet in bullets)
+                    {
+                        Raylib.DrawCircle((int)bullet.position.X, (int)bullet.position.Y, 2, Color.Yellow);
+                    }
                 }
+
+                Raylib.EndDrawing();
+
             }
 
-            // slows down the ship
-            public async Task Delay(int time)
+
+            // creates asteroids
+            public void InitTimer()
             {
-                await Task.Delay(time);
-                SlowDown();
-            }
-            public void SlowDown()
-            {
-                if (velocity.Y > 0 && !Raylib.IsKeyDown(KeyboardKey.W))
-                {
-                    velocity.Y -= 1;
-                    velocity.Y = (int)velocity.Y;
-                }
-                if (velocity.Y < 0 && !Raylib.IsKeyDown(KeyboardKey.W))
-                {
-                    velocity.Y += 1;
-                    velocity.Y = (int)velocity.Y;
-                }
-                if (velocity.X > 0 && !Raylib.IsKeyDown(KeyboardKey.W))
-                {
-                    velocity.X -= 1;
-                    velocity.X = (int)velocity.X;
-                }
-                if (velocity.X < 0 && !Raylib.IsKeyDown(KeyboardKey.W))
-                {
-                    velocity.X += 1;
-                    velocity.X = (int)velocity.X;
-                }
+                timer1 = new System.Timers.Timer();
+                timer1.Elapsed += Tick;
+                timer1.Interval = 2000;
+                timer1.Start();
             }
 
+            public void Tick(Object source, ElapsedEventArgs e)
+            {
+                CreateAsteroid();
+            }
 
             // bullet shit
             public void MakeBullet(Vector2 pos, Vector2 direction)
@@ -226,40 +423,125 @@ namespace Asteroids
             }
             public void MoveBullet(Bullet bullet)
             {
-                bullet.position += bullet.direction;
-            }
-
-            public void DrawGame()
-            {
-                Raylib.BeginDrawing();
-                if (gameOver != true)
+                float bulletSpeed = 500;
+                bullet.position += bullet.direction * bulletSpeed * Raylib.GetFrameTime();
+                if (bullet.position.X < 0 || bullet.position.X > screenWidth || bullet.position.Y < 0 || bullet.position.Y > screenHeight)
                 {
-                    Raylib.ClearBackground(Color.LightGray);
-                    Rectangle fullImageRect = new Rectangle(0, 0, player.Width, player.Height);
-                    playerRec = new Rectangle((int)position.X, (int)position.Y, player.Width, player.Height);
-                    //Raylib.DrawRectanglePro(rect, new Vector2(rect.Width / 2, rect.Height / 2), rotationAngle, Color.DarkPurple);
-
-                    Raylib.DrawTexturePro(player, fullImageRect, playerRec, new Vector2(playerRec.Width / 2, playerRec.Height / 2), rotationAngle, Color.White);
-
-                    foreach (Bullet bullet in bullets)
+                    bullet.isActive = false;
+                }
+                else
+                {
+                    foreach (Asteroid asteroid in asteroids)
                     {
-                        Raylib.DrawCircle((int)bullet.position.X, (int)bullet.position.Y, 2, Color.Yellow);
+                        CheckCollision(bullet, asteroid);
+                    }
+                    foreach (SmallAsteroid asteroid in smallAsteroids)
+                    {
+                        CheckCollision(bullet, asteroid);
                     }
                 }
 
-                Raylib.EndDrawing();
-
             }
 
-            public void CreateEnemy(Random random)
+
+            public void CreateAsteroid()
             {
+                Random random = new Random();
+                Asteroid asteroid = new Asteroid();
+                asteroid.position = new Vector2(random.Next(0, screenWidth), -90);
+                asteroid.isActive = true;
+                asteroid.direction = new Vector2((float)random.NextDouble() * 2 - 1, 1);
 
+                asteroids.Add(asteroid);
             }
 
-            public void CreateAsteroid(Random random)
+            public void UpdateAsteroid(Asteroid asteroid)
             {
-
+                float speed = 200;
+                asteroid.position += asteroid.direction * speed * Raylib.GetFrameTime();
+                asteroid.collisionBox = new Rectangle(asteroid.position + new Vector2(10, 10), 100, 70);
+                if (asteroid.position.X > screenWidth || asteroid.position.X < -160 || asteroid.position.Y > screenHeight)
+                {
+                    asteroid.isActive = false;
+                }
+                else
+                {
+                    CheckCollision(asteroid);
+                }
             }
+
+            public void UpdateAsteroid(SmallAsteroid asteroid)
+            {
+                float speed = 200;
+                asteroid.position += asteroid.direction * speed * Raylib.GetFrameTime();
+                asteroid.collisionBox = new Rectangle(asteroid.position, 40, 40);
+                if (asteroid.position.X > screenWidth || asteroid.position.X < -160 || asteroid.position.Y > screenHeight)
+                {
+                    asteroid.isActive = false;
+                }
+                else
+                {
+                    CheckCollision(asteroid);
+                }
+            }
+
+            public void CreateEnemy()
+            {
+                Random random = new Random();
+            }
+
+            // every collision check
+            public void CheckCollision(Asteroid asteroid)
+            {
+                if (Raylib.CheckCollisionRecs(playerCollision, asteroid.collisionBox))
+                {
+                    hp -= 1;
+                    asteroid.isActive = false;
+                }
+            }
+
+            public void CheckCollision(SmallAsteroid smallAsteroid)
+            {
+                if (Raylib.CheckCollisionRecs(playerCollision, smallAsteroid.collisionBox))
+                {
+                    hp -= 1;
+                    smallAsteroid.isActive = false;
+                }
+            }
+
+            public void CheckCollision(Bullet bullet, Asteroid asteroid)
+            {
+                if (Raylib.CheckCollisionPointRec(bullet.position, asteroid.collisionBox))
+                {
+                    bullet.isActive = false;
+                    asteroid.isActive = false;
+                    points += 5;
+                    AsteroidSplit(asteroid);
+                    AsteroidSplit(asteroid);
+                }
+            }
+
+            public void CheckCollision(Bullet bullet, SmallAsteroid asteroid)
+            {
+                if (Raylib.CheckCollisionPointRec(bullet.position, asteroid.collisionBox))
+                {
+                    bullet.isActive = false;
+                    asteroid.isActive = false;
+                    points += 5;
+                }
+            }
+
+            public void AsteroidSplit(Asteroid asteroidBig)
+            {
+                Random random = new Random();
+                SmallAsteroid asteroid = new SmallAsteroid();
+                asteroid.position = new Vector2(asteroidBig.position.X + random.Next(-50, 21), asteroidBig.position.Y + random.Next(-50, 21));
+                asteroid.isActive = true;
+                asteroid.direction = new Vector2((float)random.NextDouble() * 2 - 1, 1);
+
+                smallAsteroids.Add(asteroid);
+            }
+
         }
 
         static void Main(string[] args)
