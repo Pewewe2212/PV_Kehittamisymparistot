@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Net.Sockets;
+using System.Numerics;
 using System.Timers;
 using Raylib_cs;
 
@@ -30,25 +31,51 @@ namespace Asteroids
         {
             public class Bullet
             {
-                public Vector2 position;
-                public Vector2 direction;
-                public bool isActive;
+                public GameObject gameObject;
+                public Transform transform;
+                public Collision collision;
+                public Bullet()
+                {
+                    gameObject = new GameObject();
+                    transform = new Transform();
+                    transform.speed = 500;
+                    collision = new Collision();
+                }
             }
 
             public class Asteroid
             {
-                public Vector2 position;
-                public Vector2 direction;
-                public bool isActive;
-                public Rectangle collisionBox;
+                public GameObject gameObject;
+                public SpriteRenderer sr;
+                public Collision collision;
+                public Asteroid()
+                {
+                    gameObject = new GameObject();
+                    sr = new SpriteRenderer();
+                    collision = new Collision();
+
+                    gameObject.speed = 200;
+                    collision.Bounds.Size = new Vector2(100, 70);
+
+                    
+                }
+
             }
 
             public class SmallAsteroid
             {
-                public Vector2 position;
-                public Vector2 direction;
-                public bool isActive;
-                public Rectangle collisionBox;
+                public GameObject gameObject;
+                public SpriteRenderer sr;
+                public Collision collision;
+                public SmallAsteroid()
+                {
+                    gameObject = new GameObject();
+                    sr = new SpriteRenderer();
+                    collision = new Collision();
+
+                    gameObject.speed = 200;
+                    collision.Bounds.Size = new Vector2(40, 40);
+                }
             }
 
             // Asteroid things
@@ -65,7 +92,6 @@ namespace Asteroids
             // images
             private Texture2D player;
             private Rectangle playerRec;
-            private Texture2D enemy;
             private Texture2D asteroidBig;
             private Texture2D asteroidSmall;
 
@@ -124,7 +150,6 @@ namespace Asteroids
             public void LoadImages()
             {
                 player = Raylib.LoadTexture("zAsteroidsImages/playerShip2_red.png");
-                enemy = Raylib.LoadTexture("zAsteroidsImages/ufoBlue.png");
                 asteroidBig = Raylib.LoadTexture("zAsteroidsImages/meteorGrey_big2.png");
                 asteroidSmall = Raylib.LoadTexture("zAsteroidsImages/meteorGrey_med1.png");
             }
@@ -199,7 +224,6 @@ namespace Asteroids
                 }
 
                 Raylib.UnloadTexture(player);
-                Raylib.UnloadTexture(enemy);
                 Raylib.UnloadTexture(asteroidBig);
                 Raylib.UnloadTexture(asteroidSmall);
                 Raylib.CloseWindow();
@@ -228,7 +252,7 @@ namespace Asteroids
                     {
                         for (int i = bullets.Count - 1; i >= 0; i--)
                         {
-                            if (!bullets[i].isActive)
+                            if (!bullets[i].gameObject.isActive)
                             {
                                 bullets.RemoveAt(i);
                             }
@@ -249,7 +273,7 @@ namespace Asteroids
                     {
                         for (int i = asteroids.Count - 1; i >= 0; i--)
                         {
-                            if (!asteroids[i].isActive)
+                            if (!asteroids[i].gameObject.isActive)
                             {
                                 asteroids.RemoveAt(i);
                             }
@@ -263,7 +287,7 @@ namespace Asteroids
                     {
                         for (int i = smallAsteroids.Count - 1; i >= 0; i--)
                         {
-                            if (!smallAsteroids[i].isActive)
+                            if (!smallAsteroids[i].gameObject.isActive)
                             {
                                 smallAsteroids.RemoveAt(i);
                             }
@@ -273,8 +297,6 @@ namespace Asteroids
                             }
                         }
                     }
-
-                    // Enemy ships
                 }
 
 
@@ -393,17 +415,17 @@ namespace Asteroids
 
                     foreach (Asteroid asteroid in asteroids)
                     {
-                        Raylib.DrawTexture(asteroidBig, (int)asteroid.position.X, (int)asteroid.position.Y, Color.White);
+                        asteroid.sr.DrawTexture(asteroid.gameObject, asteroidBig);
                     }
 
                     foreach (SmallAsteroid asteroid in smallAsteroids)
                     {
-                        Raylib.DrawTexture(asteroidSmall, (int)asteroid.position.X, (int)asteroid.position.Y, Color.White);
+                        asteroid.sr.DrawTexture(asteroid.gameObject, asteroidSmall);
                     }
 
                     foreach (Bullet bullet in bullets)
                     {
-                        Raylib.DrawCircle((int)bullet.position.X, (int)bullet.position.Y, 2, Color.Yellow);
+                        Raylib.DrawCircle((int)bullet.transform.position.X, (int)bullet.transform.position.Y, 2, Color.Yellow);
                     }
                 }
                 Raylib.EndDrawing();
@@ -427,32 +449,24 @@ namespace Asteroids
             public void MakeBullet(Vector2 pos, Vector2 direction)
             {
                 Bullet bullet = new Bullet();
-                bullet.position = pos;
-                bullet.direction = direction;
-                bullet.isActive = true;
+                bullet.transform.position = pos;
+                bullet.transform.direction = direction;
+                bullet.gameObject.isActive = true;
 
                 bullets.Add(bullet);
             }
             public void MoveBullet(Bullet bullet)
             {
-                float bulletSpeed = 500;
-                bullet.position += bullet.direction * bulletSpeed * Raylib.GetFrameTime();
-                if (bullet.position.X < 0 || bullet.position.X > screenWidth || bullet.position.Y < 0 || bullet.position.Y > screenHeight)
+                bullet.transform.Move();
+                bullet.gameObject.DieOutOfBounds(screenWidth, screenHeight);
+                foreach (Asteroid asteroid in asteroids)
                 {
-                    bullet.isActive = false;
+                    CheckCollision(bullet, asteroid);
                 }
-                else
+                foreach (SmallAsteroid asteroid in smallAsteroids)
                 {
-                    foreach (Asteroid asteroid in asteroids)
-                    {
-                        CheckCollision(bullet, asteroid);
-                    }
-                    foreach (SmallAsteroid asteroid in smallAsteroids)
-                    {
-                        CheckCollision(bullet, asteroid);
-                    }
+                    CheckCollision(bullet, asteroid);
                 }
-
             }
 
             // asteroid stuff
@@ -460,25 +474,23 @@ namespace Asteroids
             {
                 Random random = new Random();
                 Asteroid asteroid = new Asteroid();
-                asteroid.position = new Vector2(random.Next(0, screenWidth), -90);
-                asteroid.isActive = true;
-                asteroid.direction = new Vector2((float)random.NextDouble() * 2 - 1, 1);
+                asteroid.gameObject.position = new Vector2(random.Next(0, screenWidth), -90);
+                asteroid.gameObject.isActive = true;
+                asteroid.gameObject.direction = new Vector2((float)random.NextDouble() * 2 - 1, 1);
 
                 asteroids.Add(asteroid);
             }
 
             public void UpdateAsteroid(Asteroid asteroid)
             {
-                float speed = 200;
-                asteroid.position += asteroid.direction * speed * Raylib.GetFrameTime();
-                asteroid.collisionBox = new Rectangle(asteroid.position + new Vector2(10, 10), 100, 70);
-                if (asteroid.position.X > screenWidth || asteroid.position.X < -160 || asteroid.position.Y > screenHeight)
+                asteroid.gameObject.Move();
+                asteroid.collision.Bounds = new Rectangle(asteroid.gameObject.position + new Vector2(10, 10), asteroid.collision.Bounds.Size);
+                asteroid.gameObject.DieOutOfBounds(screenWidth, screenHeight);
+
+                if (asteroid.collision.CheckCollision(playerCollision))
                 {
-                    asteroid.isActive = false;
-                }
-                else
-                {
-                    CheckCollision(asteroid);
+                    hp -= 1;
+                    asteroid.gameObject.isActive = false;
                 }
             }
 
@@ -486,53 +498,37 @@ namespace Asteroids
             {
                 Random random = new Random();
                 SmallAsteroid asteroid = new SmallAsteroid();
-                asteroid.position = new Vector2(asteroidBig.position.X + random.Next(-50, 21), asteroidBig.position.Y + random.Next(-50, 21));
-                asteroid.isActive = true;
-                asteroid.direction = new Vector2((float)random.NextDouble() * 2 - 1, 1);
+                asteroid.gameObject.position = new Vector2(asteroidBig.gameObject.position.X + random.Next(-50, 21), asteroidBig.gameObject.position.Y + random.Next(-50, 21));
+                asteroid.gameObject.isActive = true;
+                asteroid.gameObject.direction = new Vector2((float)random.NextDouble() * 2 - 1, 1); //AI helped with math (specifically the random.NextDouble() * 2 - 1)
 
                 smallAsteroids.Add(asteroid);
             }
 
             public void UpdateAsteroid(SmallAsteroid asteroid)
             {
-                float speed = 200;
-                asteroid.position += asteroid.direction * speed * Raylib.GetFrameTime();
-                asteroid.collisionBox = new Rectangle(asteroid.position, 40, 40);
-                if (asteroid.position.X > screenWidth || asteroid.position.X < -160 || asteroid.position.Y > screenHeight)
+                asteroid.gameObject.Move();
+                asteroid.collision.Bounds = new Rectangle(asteroid.gameObject.position + new Vector2(10, 10), asteroid.collision.Bounds.Size);
+                asteroid.gameObject.DieOutOfBounds(screenWidth, screenHeight);
+
+                if (asteroid.collision.CheckCollision(playerCollision))
                 {
-                    asteroid.isActive = false;
-                }
-                else
-                {
-                    CheckCollision(asteroid);
+                    hp -= 1;
+                    asteroid.gameObject.isActive = false;
                 }
             }
 
             // every collision check
-            public void CheckCollision(Asteroid asteroid)
-            {
-                if (Raylib.CheckCollisionRecs(playerCollision, asteroid.collisionBox))
-                {
-                    hp -= 1;
-                    asteroid.isActive = false;
-                }
-            }
+            // player collisions
+ 
 
-            public void CheckCollision(SmallAsteroid smallAsteroid)
-            {
-                if (Raylib.CheckCollisionRecs(playerCollision, smallAsteroid.collisionBox))
-                {
-                    hp -= 1;
-                    smallAsteroid.isActive = false;
-                }
-            }
-
+            // bullet collisions
             public void CheckCollision(Bullet bullet, Asteroid asteroid)
             {
-                if (Raylib.CheckCollisionPointRec(bullet.position, asteroid.collisionBox))
+                if (bullet.collision.CheckCollision(asteroid.collision.Bounds, bullet.gameObject.position))
                 {
-                    bullet.isActive = false;
-                    asteroid.isActive = false;
+                    bullet.gameObject.isActive = false;
+                    asteroid.gameObject.isActive = false;
                     points += 5;
                     AsteroidSplit(asteroid);
                     AsteroidSplit(asteroid);
@@ -541,10 +537,10 @@ namespace Asteroids
 
             public void CheckCollision(Bullet bullet, SmallAsteroid asteroid)
             {
-                if (Raylib.CheckCollisionPointRec(bullet.position, asteroid.collisionBox))
+                if (bullet.collision.CheckCollision(asteroid.collision.Bounds, bullet.gameObject.position))
                 {
-                    bullet.isActive = false;
-                    asteroid.isActive = false;
+                    bullet.gameObject.isActive = false;
+                    asteroid.gameObject.isActive = false;
                     points += 5;
                 }
             }

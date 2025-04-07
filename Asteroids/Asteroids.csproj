@@ -24,9 +24,6 @@
     <None Update="zAsteroidsImages\PNG\playerShip2_red.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="zAsteroidsImages\ufoBlue.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
 </Project>
