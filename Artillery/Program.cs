@@ -119,8 +119,8 @@ namespace Artillery
 
             public void LoadSounds()
             {
-                shootSound = Raylib.LoadSound("C:/laserShoot.wav");
-                explosionSound = Raylib.LoadSound("C:/explosion.wav");
+                shootSound = Raylib.LoadSound("laserShoot.wav");
+                explosionSound = Raylib.LoadSound("explosion.wav");
             }
 
             public void GameLoop()
