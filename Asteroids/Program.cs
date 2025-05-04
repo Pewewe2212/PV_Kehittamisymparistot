@@ -1,43 +1,21 @@
-﻿using System.Numerics;
-using System.Timers;
+﻿using System.Diagnostics;
+using System.Numerics;
 using Raylib_cs;
 
 namespace Asteroids
 {
     internal class Program
     {
-        /// <summary>
-        /// TO DO:
-        /// Player:
-        /// make the player able to die
-        /// 
-        /// Asteroids:
-        /// make the asteroids exist
-        /// make the asteroids show up randomly
-        /// make the asteroids deadly
-        /// 
-        /// Other:
-        /// Make the enemies 
-        /// Make the images work
-        /// Make it so you can restart after losing
-        /// 
-        /// </summary>
-        /// 
-
-        /// CURRENTLY WORKING ON:
-        /// Making asteroids split when hit
         public class Game()
         {
             public class Bullet
             {
                 public GameObject gameObject;
-                public Transform transform;
                 public Collision collision;
                 public Bullet()
                 {
                     gameObject = new GameObject();
-                    transform = new Transform();
-                    transform.speed = 500;
+                    gameObject.speed = 500;
                     collision = new Collision();
                 }
             }
@@ -47,6 +25,13 @@ namespace Asteroids
                 public GameObject gameObject;
                 public SpriteRenderer sr;
                 public Collision collision;
+
+                public enum Size
+                {
+                    Big, Small
+                }
+                public Size size;
+
                 public Asteroid()
                 {
                     gameObject = new GameObject();
@@ -54,31 +39,27 @@ namespace Asteroids
                     collision = new Collision();
 
                     gameObject.speed = 200;
-                    collision.Bounds.Size = new Vector2(100, 70);
-
-
                 }
 
             }
 
-            public class SmallAsteroid
+            public class Ship
             {
                 public GameObject gameObject;
                 public SpriteRenderer sr;
                 public Collision collision;
-                public SmallAsteroid()
+
+                public Ship()
                 {
                     gameObject = new GameObject();
                     sr = new SpriteRenderer();
                     collision = new Collision();
-
-                    gameObject.speed = 200;
-                    collision.Bounds.Size = new Vector2(40, 40);
                 }
             }
 
+
             // Asteroid things
-            private System.Timers.Timer timer1;
+            public int asteroidAmount = 2;
 
             // game state booleans
             public bool gameRunning;
@@ -99,16 +80,16 @@ namespace Asteroids
             private Rectangle playerCollision;
             private float attackDelay;
             private float attackDelayMax = 500;
+            private bool safetySwitch = false;
 
             // movement of the ship 
-            private float acceleration = 600;
-            private float max_speed = 300;
+            Ship ship = new Ship();
+            private float acceleration = 500;
+            private float max_speed = 150;
             private Vector2 velocity = new Vector2(0, 0);
             private float deltaTime;
-            private Vector2 position = new Vector2(100, 100);
             private float directionX;
             private float directionY;
-            private Vector2 direction;
             private float rotationAngle;
 
             // UI things
@@ -117,7 +98,6 @@ namespace Asteroids
             // lists
             private List<Bullet> bullets;
             private List<Asteroid> asteroids;
-            private List<SmallAsteroid> smallAsteroids;
 
             public void Start()
             {
@@ -134,17 +114,9 @@ namespace Asteroids
             public void Init()
             {
                 Raylib.InitWindow(screenWidth, screenHeight, "Asteroids");
-                // add the extra knowledge for the start here
-                gameRunning = true;
-                gameOver = false;
-                bullets = new List<Bullet>();
-                asteroids = new List<Asteroid>();
-                smallAsteroids = new List<SmallAsteroid>();
-                position = new Vector2(screenWidth / 2, screenHeight / 2);
+                Restart();
                 LoadImages();
-                InitTimer();
             }
-
 
             public void LoadImages()
             {
@@ -168,50 +140,37 @@ namespace Asteroids
 
                         if (Raylib.IsKeyPressed(KeyboardKey.R))
                         {
+                            asteroidAmount = 2;
                             Restart();
                             break;
                         }
 
                         Raylib.EndDrawing();
                     }
-
-
                 }
                 // win
                 else if (result == true)
                 {
-
-
-                    while (true)
-                    {
-                        Raylib.BeginDrawing();
-                        Raylib.ClearBackground(Color.White);
-                        Raylib.DrawText("YOU WON", screenWidth / 2 - 40, screenHeight / 2 - 20, 40, Color.Black);
-                        Raylib.DrawText("Press R to restart", screenWidth / 2 - 40, screenHeight / 2 + 60, 40, Color.Black);
-
-                        if (Raylib.IsKeyPressed(KeyboardKey.R))
-                        {
-                            Restart();
-                            break;
-                        }
-
-                        Raylib.EndDrawing();
-                    }
+                    Restart();
                 }
             }
 
             public void Restart()
             {
+                Random random = new Random();
                 gameRunning = true;
                 gameOver = false;
                 bullets = new List<Bullet>();
                 asteroids = new List<Asteroid>();
-                smallAsteroids = new List<SmallAsteroid>();
-                position = new Vector2(screenWidth / 2, screenHeight / 2);
-                points = 0;
+                ship.gameObject.position = new Vector2(screenWidth / 2, screenHeight / 2);
                 hp = 2;
                 rotationAngle = 0;
                 velocity = new Vector2(0, 0);
+                asteroidAmount += 1;
+                for (int i = 0; i < asteroidAmount; i++)
+                {
+                    CreateAsteroid(Asteroid.Size.Big, new Vector2(random.Next(0, screenWidth), random.Next(-300, -90)));
+                }
             }
 
             public void GameLoop()
@@ -230,80 +189,11 @@ namespace Asteroids
 
             public void Update()
             {
-                // bullets
-                if (gameOver != true)
-                {
-                    // checks shooting n makes the bullet
-                    if (Raylib.IsKeyPressed(KeyboardKey.Space) && attackDelay <= 0)
-                    {
-                        attackDelay = attackDelayMax;
-                        MakeBullet(position, direction);
-                    }
-
-                    // checks the delay
-                    if (attackDelay > 0)
-                    {
-                        attackDelay -= 1000 * Raylib.GetFrameTime();
-                    }
-
-                    // removes inactive bullets and moves the needed ones
-                    if (bullets != null)
-                    {
-                        for (int i = bullets.Count - 1; i >= 0; i--)
-                        {
-                            if (!bullets[i].gameObject.isActive)
-                            {
-                                bullets.RemoveAt(i);
-                            }
-                            else
-                            {
-                                MoveBullet(bullets[i]);
-                            }
-                        }
-                    }
-                }
-
-
-                // enemy spawning
-                if (gameOver != true)
-                {
-                    // Asteroids
-                    if (asteroids != null)
-                    {
-                        for (int i = asteroids.Count - 1; i >= 0; i--)
-                        {
-                            if (!asteroids[i].gameObject.isActive)
-                            {
-                                asteroids.RemoveAt(i);
-                            }
-                            else
-                            {
-                                UpdateAsteroid(asteroids[i]);
-                            }
-                        }
-                    }
-                    if (smallAsteroids != null)
-                    {
-                        for (int i = smallAsteroids.Count - 1; i >= 0; i--)
-                        {
-                            if (!smallAsteroids[i].gameObject.isActive)
-                            {
-                                smallAsteroids.RemoveAt(i);
-                            }
-                            else
-                            {
-                                UpdateAsteroid(smallAsteroids[i]);
-                            }
-                        }
-                    }
-                }
-
-
                 // movement
                 if (gameOver != true)
                 {
                     // player collision box
-                    playerCollision = new Rectangle((int)position.X - 30, (int)position.Y - 30, player.Width - 50, player.Height - 10);
+                    playerCollision = new Rectangle((int)ship.gameObject.position.X - 30, (int)ship.gameObject.position.Y - 30, player.Width - 50, player.Height - 10);
 
                     // player movement
                     deltaTime = Raylib.GetFrameTime();
@@ -311,7 +201,7 @@ namespace Asteroids
                     /// Forward movement
                     directionX = (float)Math.Cos((rotationAngle - 90) * Math.PI / 180);
                     directionY = (float)Math.Sin((rotationAngle - 90) * Math.PI / 180);
-                    direction = new Vector2(directionX, directionY);
+                    ship.gameObject.direction = new Vector2(directionX, directionY);
 
                     if (Raylib.IsKeyDown(KeyboardKey.W))
                     {
@@ -340,58 +230,63 @@ namespace Asteroids
                         rotationAngle = 0;
                     }
 
-                    // make the ship constantly go towards 0 speed 
-                    if (!Raylib.IsKeyDown(KeyboardKey.W))
+                    // checks shooting n makes the bullet
+                    if (Raylib.IsKeyPressed(KeyboardKey.Space) && attackDelay <= 0)
                     {
-                        float friction = 200f;
-                        if (velocity.Length() > 0)
+                        attackDelay = attackDelayMax;
+                        MakeBullet(ship.gameObject.position, ship.gameObject.direction);
+                    }
+
+                    // checks the delay
+                    if (attackDelay > 0)
+                    {
+                        attackDelay -= 1000 * Raylib.GetFrameTime();
+                    }
+
+                    // removes inactive bullets and moves the needed ones
+                    if (bullets != null)
+                    {
+                        for (int i = bullets.Count - 1; i >= 0; i--)
                         {
-                            Vector2 frictionForce = Vector2.Normalize(velocity) * friction * deltaTime;
-                            if (frictionForce.Length() > velocity.Length())
+                            if (!bullets[i].gameObject.isActive)
                             {
-                                velocity = Vector2.Zero;
+                                bullets.RemoveAt(i);
                             }
                             else
                             {
-                                velocity -= frictionForce;
+                                MoveBullet(bullets[i]);
                             }
                         }
                     }
 
+                    // Asteroids
+                    if (asteroids != null)
+                    {
+                        for (int i = asteroids.Count - 1; i >= 0; i--)
+                        {
+                            if (!asteroids[i].gameObject.isActive)
+                            {
+                                asteroids.RemoveAt(i);
+                            }
+                            else
+                            {
+                                UpdateAsteroid(asteroids[i]);
+                            }
+                        }
+                    }
 
                     // actually move the ship
-                    position += velocity * deltaTime;
+                    ship.gameObject.position += velocity * deltaTime;
+                    ship.gameObject.OutOfBounds(screenWidth, screenHeight);
 
-                    // makes the ship stay in bounds
-                    if (position.X < 0)
-                    {
-                        position.X = 0;
-                    }
-                    if (position.X > screenWidth)
-                    {
-                        position.X = screenWidth;
-                    }
-                    if (position.Y < 0)
-                    {
-                        position.Y = 0;
-                    }
-                    if (position.Y > screenHeight)
-                    {
-                        position.Y = screenHeight;
-                    }
-                }
-
-                // checks if the game should end
-                if (gameOver != true)
-                {
-                    if (points >= 50)
-                    {
-                        GameEnd(true);
-                    }
-
+                    // checks if the game should end
                     if (hp <= 0)
                     {
                         GameEnd(false);
+                    }
+                    if (!asteroids.Any())
+                    {
+                        GameEnd(true);
                     }
                 }
 
@@ -404,7 +299,7 @@ namespace Asteroids
                 {
                     Raylib.ClearBackground(Color.Black);
                     Rectangle fullImageRect = new Rectangle(0, 0, player.Width, player.Height);
-                    playerRec = new Rectangle((int)position.X, (int)position.Y, player.Width, player.Height);
+                    playerRec = new Rectangle((int)ship.gameObject.position.X, (int)ship.gameObject.position.Y, player.Width, player.Height);
 
                     Raylib.DrawTexturePro(player, fullImageRect, playerRec, new Vector2(playerRec.Width / 2, playerRec.Height / 2), rotationAngle, Color.White);
 
@@ -414,77 +309,80 @@ namespace Asteroids
 
                     foreach (Asteroid asteroid in asteroids)
                     {
-                        asteroid.sr.DrawTexture(asteroid.gameObject, asteroidBig);
-                    }
-
-                    foreach (SmallAsteroid asteroid in smallAsteroids)
-                    {
-                        asteroid.sr.DrawTexture(asteroid.gameObject, asteroidSmall);
+                        if (asteroid.size == Asteroid.Size.Big)
+                        {
+                            asteroid.sr.DrawTexture(asteroid.gameObject, asteroidBig);
+                        }
+                        else if (asteroid.size == Asteroid.Size.Small)
+                        {
+                            asteroid.sr.DrawTexture(asteroid.gameObject, asteroidSmall);
+                        }
                     }
 
                     foreach (Bullet bullet in bullets)
                     {
-                        Raylib.DrawCircle((int)bullet.transform.position.X, (int)bullet.transform.position.Y, 2, Color.Yellow);
+                        Raylib.DrawCircle((int)bullet.gameObject.position.X, (int)bullet.gameObject.position.Y, 2, Color.Yellow);
                     }
                 }
                 Raylib.EndDrawing();
-            }
-
-            // creates asteroids on a timer // Used AI to get the idea, but not the full code
-            public void InitTimer()
-            {
-                timer1 = new System.Timers.Timer();
-                timer1.Elapsed += Tick;
-                timer1.Interval = 2000;
-                timer1.Start();
-            }
-
-            public void Tick(Object source, ElapsedEventArgs e)
-            {
-                CreateAsteroid();
             }
 
             // bullet stuff
             public void MakeBullet(Vector2 pos, Vector2 direction)
             {
                 Bullet bullet = new Bullet();
-                bullet.transform.position = pos;
-                bullet.transform.direction = direction;
+                bullet.gameObject.position = pos;
+                bullet.gameObject.direction = direction;
                 bullet.gameObject.isActive = true;
 
                 bullets.Add(bullet);
             }
             public void MoveBullet(Bullet bullet)
             {
-                bullet.transform.Move();
-                bullet.gameObject.DieOutOfBounds(screenWidth, screenHeight);
+                bullet.gameObject.Move();
+                bullet.gameObject.OutOfBounds(screenWidth, screenHeight);
                 foreach (Asteroid asteroid in asteroids)
                 {
                     CheckCollision(bullet, asteroid);
-                }
-                foreach (SmallAsteroid asteroid in smallAsteroids)
-                {
-                    CheckCollision(bullet, asteroid);
+                    if (safetySwitch == true)
+                    {
+                        safetySwitch = false;
+                        break;
+                    }
                 }
             }
 
             // asteroid stuff
-            public void CreateAsteroid()
+            public void CreateAsteroid(Asteroid.Size asteroidSize, Vector2 position)
             {
                 Random random = new Random();
                 Asteroid asteroid = new Asteroid();
-                asteroid.gameObject.position = new Vector2(random.Next(0, screenWidth), -90);
+                asteroid.gameObject.position = position;
                 asteroid.gameObject.isActive = true;
+                asteroid.gameObject.speed = random.Next(150, 200);
                 asteroid.gameObject.direction = new Vector2((float)random.NextDouble() * 2 - 1, 1);
 
-                asteroids.Add(asteroid);
+                if (asteroidSize == Asteroid.Size.Big)
+                {
+                    asteroid.collision.Bounds.Size = new Vector2(100, 70);
+                    asteroid.size = Asteroid.Size.Big;
+
+                    asteroids.Add(asteroid);
+                }
+                else if (asteroidSize == Asteroid.Size.Small)
+                {
+                    asteroid.collision.Bounds.Size = new Vector2(40, 40);
+                    asteroid.size = Asteroid.Size.Small;
+
+                    asteroids.Add(asteroid);
+                }
             }
 
             public void UpdateAsteroid(Asteroid asteroid)
             {
                 asteroid.gameObject.Move();
                 asteroid.collision.Bounds = new Rectangle(asteroid.gameObject.position + new Vector2(10, 10), asteroid.collision.Bounds.Size);
-                asteroid.gameObject.DieOutOfBounds(screenWidth, screenHeight);
+                asteroid.gameObject.OutOfBounds(screenWidth, screenHeight);
 
                 if (asteroid.collision.CheckCollision(playerCollision))
                 {
@@ -493,33 +391,19 @@ namespace Asteroids
                 }
             }
 
-            public void AsteroidSplit(Asteroid asteroidBig)
+            public void AsteroidSplit(Asteroid asteroid)
             {
-                Random random = new Random();
-                SmallAsteroid asteroid = new SmallAsteroid();
-                asteroid.gameObject.position = new Vector2(asteroidBig.gameObject.position.X + random.Next(-50, 21), asteroidBig.gameObject.position.Y + random.Next(-50, 21));
-                asteroid.gameObject.isActive = true;
-                asteroid.gameObject.direction = new Vector2((float)random.NextDouble() * 2 - 1, 1); //AI helped with math (specifically the random.NextDouble() * 2 - 1)
-
-                smallAsteroids.Add(asteroid);
-            }
-
-            public void UpdateAsteroid(SmallAsteroid asteroid)
-            {
-                asteroid.gameObject.Move();
-                asteroid.collision.Bounds = new Rectangle(asteroid.gameObject.position + new Vector2(10, 10), asteroid.collision.Bounds.Size);
-                asteroid.gameObject.DieOutOfBounds(screenWidth, screenHeight);
-
-                if (asteroid.collision.CheckCollision(playerCollision))
+                if (asteroid.size == Asteroid.Size.Big)
                 {
-                    hp -= 1;
-                    asteroid.gameObject.isActive = false;
+                    CreateAsteroid(Asteroid.Size.Small, asteroid.gameObject.position);
+                    CreateAsteroid(Asteroid.Size.Small, asteroid.gameObject.position);
                 }
+                else if (asteroid.size == Asteroid.Size.Small)
+                {
+                    points += 5;
+                }
+                asteroids.Remove(asteroid);
             }
-
-            // every collision check
-            // player collisions
-
 
             // bullet collisions
             public void CheckCollision(Bullet bullet, Asteroid asteroid)
@@ -530,17 +414,7 @@ namespace Asteroids
                     asteroid.gameObject.isActive = false;
                     points += 5;
                     AsteroidSplit(asteroid);
-                    AsteroidSplit(asteroid);
-                }
-            }
-
-            public void CheckCollision(Bullet bullet, SmallAsteroid asteroid)
-            {
-                if (bullet.collision.CheckCollision(asteroid.collision.Bounds, bullet.gameObject.position))
-                {
-                    bullet.gameObject.isActive = false;
-                    asteroid.gameObject.isActive = false;
-                    points += 5;
+                    safetySwitch = true;
                 }
             }
         }
