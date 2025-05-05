@@ -13,28 +13,6 @@ namespace Asteroids
             position += direction * speed * Raylib.GetFrameTime();
         }
 
-        public void DieOutOfBounds(float screenWidth, float screenHeight)
-        {
-            if (position.X >= screenWidth)
-            {
-                isActive = false;
-            }
-            else if (position.X < 0)
-            {
-                isActive = false;
-
-            }
-            else if (position.Y >= screenHeight)
-            {
-                isActive = false;
-
-            }
-            else if (position.Y < 0)
-            {
-                isActive = false;
-
-            }
-        }
         public void OutOfBounds(float screenWidth, float screenHeight)
         {
             if (position.X > screenWidth + 1)
