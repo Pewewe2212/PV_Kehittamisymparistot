@@ -360,7 +360,7 @@ namespace Asteroids
                 asteroid.gameObject.position = position;
                 asteroid.gameObject.isActive = true;
                 asteroid.gameObject.speed = random.Next(150, 200);
-                asteroid.gameObject.direction = new Vector2((float)random.NextDouble() * 2 - 1, 1);
+                asteroid.gameObject.direction = new Vector2((float)random.NextDouble() * 2 - 1, (float)random.NextDouble() * 2 - 1);
 
                 if (asteroidSize == Asteroid.Size.Big)
                 {
